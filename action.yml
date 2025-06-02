@@ -1,5 +1,5 @@
 name: Enterprise Repository Bridge
-description: Bridge repositories between private organizations with support for GitHub.com and GitHub Enterprise Server. Automatically configures branch protection rules and GHAS Configuration.
+description: Bridge repos between orgs with support for GitHub.com & GHES. Auto-sets branch protection & GHAS config.
 inputs:
   repository_name:
     description: 'Name of the repository to clone'

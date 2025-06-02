@@ -25,6 +25,12 @@ inputs:
   ghas_config:
     description: 'Configuration for GitHub Advanced Security'
     required: false
+  source_pat:
+    description: 'Personal Access Token for source org'
+    required: true
+  target_pat:
+    description: 'Personal Access Token for target org'
+    required: true
 branding:
   icon: 'download-cloud'
   color: 'yellow'
@@ -35,7 +41,7 @@ runs:
       run: './scripts/clone-repository.sh'
       shell: bash
       env:
-        SOURCE_PAT: ${{ secrets.SOURCE_PAT }}
+        SOURCE_PAT: ${{ inputs.source_pat }}
         SOURCE_ORG: ${{ inputs.source_org }}
         SOURCE_GHEC_URL: ${{ inputs.source_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}
@@ -44,7 +50,7 @@ runs:
       run: './scripts/create-repository.sh'
       shell: bash
       env:
-        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}
         TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}
@@ -53,7 +59,7 @@ runs:
       run: './scripts/get-runner-token.sh'
       shell: bash
       env:
-        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}
         TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}
@@ -62,7 +68,7 @@ runs:
       run: './scripts/get-metadata.sh'
       shell: bash
       env:
-        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}
         TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}
@@ -72,7 +78,7 @@ runs:
       run: './scripts/apply-ruleset.sh'
       shell: bash
       env:
-        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}
         TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}
@@ -82,7 +88,7 @@ runs:
       run: './scripts/activate-ghas.sh'
       shell: bash
       env:
-        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}
         TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}
@@ -93,7 +99,7 @@ runs:
       run: './scripts/cleanup.sh'
       shell: bash
       env:
-        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}
         TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}

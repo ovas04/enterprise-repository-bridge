@@ -1,0 +1,49 @@
+# Example Workflow for Enterprise Repository Bridge
+# 
+# Setup: Add SOURCE_PAT and TARGET_PAT secrets to your repository
+# See docs/PAT-SETUP.md for detailed instructions
+
+name: Clone Repository
+run-name: Clone ${{ github.event.inputs.repository_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository_name:
+        description: 'Repository to clone'
+        required: true
+        type: string
+      target_org:
+        description: 'Target organization (optional)'
+        required: false
+        type: string
+      default_ruleset:
+        description: 'Apply branch protection rules'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  clone-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        uses: ovas04/enterprise-repo-bridge@v1
+        env:
+          SOURCE_PAT: ${{ secrets.SOURCE_PAT }}
+          TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        with:
+          repository_name: ${{ github.event.inputs.repository_name }}
+          source_org: 'acme-corp'  # Change this to your source organization
+          target_org: ${{ github.event.inputs.target_org || 'new-company' }}
+          default_ruleset: ${{ github.event.inputs.default_ruleset }}
+
+      - name: Process completed successfully
+        if: success()
+        run: |
+          echo "============================================"
+          echo "✨ REPOSITORY CLONING COMPLETED SUCCESSFULLY"
+          echo "============================================"
+          echo "📁 Repository: ${{ github.event.inputs.target_org || 'new-company' }}/${{ github.event.inputs.repository_name }}"
+          echo "🔗 URL: https://github.com/${{ github.event.inputs.target_org || 'new-company' }}/${{ github.event.inputs.repository_name }}"
+          echo "🛡️ Branch protection: Applied"

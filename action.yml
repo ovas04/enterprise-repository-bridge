@@ -1,0 +1,99 @@
+name: Enterprise Repository Bridge
+description: Bridge repositories between private organizations with support for GitHub.com and GitHub Enterprise Server. Automatically configures branch protection rules and GitHub Advanced Security.
+inputs:
+  repository_name:
+    description: 'Name of the repository to clone'
+    required: true
+  source_org:
+    description: 'Source organization to clone the repository from'
+    required: true
+  target_org:
+    description: 'Target organization to clone the repository'
+    required: false
+  source_ghec_url:
+    description: 'Source GitHub URL (default: github.com for GitHub Cloud)'
+    required: false
+    default: 'github.com'
+  target_ghec_url:
+    description: 'Target GitHub URL (default: github.com for GitHub Cloud)'
+    required: false
+    default: 'github.com'
+  default_ruleset:
+    description: 'Enable default branch protection rules?'
+    required: false
+    default: 'true'
+  ghas_config:
+    description: 'Configuration for GitHub Advanced Security'
+    required: false
+branding:
+  icon: 'download-cloud'
+  color: 'yellow'
+runs:
+  using: 'composite'
+  steps:
+    - name: Clone Repository
+      run: './scripts/clone-repository.sh'
+      shell: bash
+      env:
+        SOURCE_PAT: ${{ secrets.SOURCE_PAT }}
+        SOURCE_ORG: ${{ inputs.source_org }}
+        SOURCE_GHEC_URL: ${{ inputs.source_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+        
+    - name: Create Target Repository
+      run: './scripts/create-repository.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: Get Runner Token
+      run: './scripts/get-runner-token.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: Get Repository Metadata
+      run: './scripts/get-metadata.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: Apply Ruleset
+      if: ${{ inputs.default_ruleset == 'true' }}
+      run: './scripts/apply-ruleset.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: Activate GHAS
+      if: ${{ inputs.ghas_config != '' }}
+      run: './scripts/activate-ghas.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+        GHAS_CONFIG: ${{ inputs.ghas_config }}
+
+    - name: Cleanup
+      if: ${{ failure() }}
+      run: './scripts/cleanup.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ secrets.TARGET_PAT }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}

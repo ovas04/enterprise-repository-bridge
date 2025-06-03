@@ -38,7 +38,7 @@ runs:
   using: 'composite'
   steps:
     - name: Clone Repository
-      run: './scripts/clone-repository.sh'
+      run: '${{ github.action_path }}/scripts/clone-repository.sh'
       shell: bash
       env:
         SOURCE_PAT: ${{ inputs.source_pat }}
@@ -47,7 +47,7 @@ runs:
         REPO_NAME: ${{ inputs.repository_name }}
         
     - name: Create Target Repository
-      run: './scripts/create-repository.sh'
+      run: '${{ github.action_path }}/scripts/create-repository.sh'
       shell: bash
       env:
         TARGET_PAT: ${{ inputs.target_pat }}
@@ -56,7 +56,7 @@ runs:
         REPO_NAME: ${{ inputs.repository_name }}
 
     - name: Get Runner Token
-      run: './scripts/get-runner-token.sh'
+      run: '${{ github.action_path }}/scripts/get-runner-token.sh'
       shell: bash
       env:
         TARGET_PAT: ${{ inputs.target_pat }}
@@ -65,7 +65,7 @@ runs:
         REPO_NAME: ${{ inputs.repository_name }}
 
     - name: Get Repository Metadata
-      run: './scripts/get-metadata.sh'
+      run: '${{ github.action_path }}/scripts/get-metadata.sh'
       shell: bash
       env:
         TARGET_PAT: ${{ inputs.target_pat }}
@@ -75,7 +75,7 @@ runs:
 
     - name: Apply Ruleset
       if: ${{ inputs.default_ruleset == 'true' }}
-      run: './scripts/apply-ruleset.sh'
+      run: '${{ github.action_path }}/scripts/apply-ruleset.sh'
       shell: bash
       env:
         TARGET_PAT: ${{ inputs.target_pat }}
@@ -85,7 +85,7 @@ runs:
 
     - name: Activate GHAS
       if: ${{ inputs.ghas_config != '' }}
-      run: './scripts/activate-ghas.sh'
+      run: '${{ github.action_path }}/scripts/activate-ghas.sh'
       shell: bash
       env:
         TARGET_PAT: ${{ inputs.target_pat }}
@@ -96,7 +96,7 @@ runs:
 
     - name: Cleanup
       if: ${{ failure() }}
-      run: './scripts/cleanup.sh'
+      run: '${{ github.action_path }}/scripts/cleanup.sh'
       shell: bash
       env:
         TARGET_PAT: ${{ inputs.target_pat }}

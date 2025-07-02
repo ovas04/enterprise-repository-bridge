@@ -31,7 +31,12 @@ if [[ -z "$TARGET_ORG" ]]; then
     echo "❌ Error: TARGET_ORG is required"
     exit 1
 fi
-git clone --mirror "https://${SOURCE_PAT}@${SOURCE_GHEC_URL}/${SOURCE_ORG}/${REPO_NAME}.git"
+
+echo "📥 Cloning repository from source..."
+if ! git clone --mirror "https://${SOURCE_PAT}@${SOURCE_GHEC_URL}/${SOURCE_ORG}/${REPO_NAME}.git"; then
+    echo "❌ Error: Failed to clone repository from source"
+    exit 1
+fi
 
 echo "🔧 Creating repository in $TARGET_ORG organization..."
 HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" -L -X POST \
@@ -48,7 +53,13 @@ fi
 
 echo "✅ Repository created successfully with status code $HTTP_STATUS"
 
+# Create a flag file to indicate the repository was created successfully
+echo "true" > /tmp/repo_created_flag
+
 echo "📤 Pushing cloned repository to target organization..."
 cd "${REPO_NAME}.git"
-git push --mirror "https://${TARGET_PAT}@${TARGET_GHEC_URL}/${TARGET_ORG}/${REPO_NAME}.git"
+if ! git push --mirror "https://${TARGET_PAT}@${TARGET_GHEC_URL}/${TARGET_ORG}/${REPO_NAME}.git"; then
+    echo "❌ Error: Failed to push repository content to target"
+    exit 1
+fi
 echo "✅ Repository content pushed successfully"

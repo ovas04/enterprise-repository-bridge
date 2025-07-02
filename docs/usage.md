@@ -49,6 +49,53 @@ jobs:
           default_ruleset: true
 ```
 
+## Usage Examples
+
+### Method 1: Using inputs (Recommended)
+
+```yaml
+- name: Clone Repository
+  uses: ovas04/enterprise-repository-bridge@v1.0.0
+  with:
+    repository_name: 'my-repo'
+    source_org: 'source-organization'
+    target_org: 'target-organization'
+    source_pat: ${{ secrets.SOURCE_PAT }}
+    target_pat: ${{ secrets.TARGET_PAT }}
+```
+
+### Method 2: Using environment variables
+
+```yaml
+- name: Clone Repository
+  uses: ovas04/enterprise-repository-bridge@v1.0.0
+  with:
+    repository_name: 'my-repo'
+    target_org: 'target-organization'
+    source_pat: ${{ secrets.SOURCE_PAT }}
+    target_pat: ${{ secrets.TARGET_PAT }}
+  env:
+    SOURCE_ORG: 'source-organization'
+```
+
+### Method 3: Mixed approach
+
+```yaml
+- name: Clone Repository
+  uses: ovas04/enterprise-repository-bridge@v1.0.0
+  with:
+    repository_name: 'my-repo'
+    target_org: 'target-organization'
+    source_pat: ${{ secrets.SOURCE_PAT }}
+    target_pat: ${{ secrets.TARGET_PAT }}
+  env:
+    SOURCE_ORG: 'source-organization'
+    SOURCE_GHEC_URL: 'github.com'
+    TARGET_GHEC_URL: 'github.com'
+```
+
+**Note:** If both input and environment variable are provided for `source_org`, the input value takes precedence.
+
 ## Advanced Configuration
 
 ### GitHub Enterprise Server Support

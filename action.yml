@@ -6,7 +6,7 @@ inputs:
     required: true
   source_org:
     description: 'Source organization to clone the repository from'
-    required: true
+    required: false
   target_org:
     description: 'Target organization to clone the repository'
     required: false
@@ -37,12 +37,30 @@ branding:
 runs:
   using: 'composite'
   steps:
+    - name: Validate Inputs
+      run: |
+        # Check if source_org is provided either as input or environment variable
+        if [[ -z "${{ inputs.source_org }}" && -z "$SOURCE_ORG" ]]; then
+          echo "❌ Error: source_org must be provided either as input or environment variable"
+          exit 1
+        fi
+        
+        # Set SOURCE_ORG for subsequent steps
+        if [[ -n "${{ inputs.source_org }}" ]]; then
+          echo "SOURCE_ORG=${{ inputs.source_org }}" >> $GITHUB_ENV
+        elif [[ -n "$SOURCE_ORG" ]]; then
+          echo "SOURCE_ORG=$SOURCE_ORG" >> $GITHUB_ENV
+        fi
+        
+        echo "✅ SOURCE_ORG configured: $SOURCE_ORG"
+      shell: bash
+      
     - name: Clone Repository
       run: '${{ github.action_path }}/scripts/clone-repository.sh'
       shell: bash
       env:
         SOURCE_PAT: ${{ inputs.source_pat }}
-        SOURCE_ORG: ${{ inputs.source_org }}
+        SOURCE_ORG: ${{ env.SOURCE_ORG }}
         SOURCE_GHEC_URL: ${{ inputs.source_ghec_url }}
         TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}

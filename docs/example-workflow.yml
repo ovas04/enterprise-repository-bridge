@@ -36,6 +36,9 @@ jobs:
           default_ruleset: ${{ github.event.inputs.default_ruleset }}
           source_pat: ${{ secrets.SOURCE_PAT }}
           target_pat: ${{ secrets.TARGET_PAT }}
+        # Alternative: You can also pass source_org as environment variable
+        # env:
+        #   SOURCE_ORG: 'your-source-org'
 
       - name: Process completed successfully
         if: success()

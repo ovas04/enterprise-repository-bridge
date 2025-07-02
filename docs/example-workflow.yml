@@ -28,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone Repository
+        id: clone-repo
         uses: ovas04/enterprise-repo-bridge@v1
         with:
           repository_name: ${{ github.event.inputs.repository_name }}
@@ -40,12 +41,14 @@ jobs:
         # env:
         #   SOURCE_ORG: 'your-source-org'
 
-      - name: Process completed successfully
+      - name: Display Repository Information
         if: success()
         run: |
           echo "============================================"
           echo "✨ REPOSITORY CLONING COMPLETED SUCCESSFULLY"
           echo "============================================"
-          echo "📁 Repository: ${{ github.event.inputs.target_org || 'new-company' }}/${{ github.event.inputs.repository_name }}"
-          echo "🔗 URL: https://github.com/${{ github.event.inputs.target_org || 'new-company' }}/${{ github.event.inputs.repository_name }}"
-          echo "🛡️ Branch protection: Applied"
+          echo "📁 Repository: ${{ steps.clone-repo.outputs.repository_name }}"
+          echo "🔗 URL: ${{ steps.clone-repo.outputs.repository_url }}"
+          echo "🎯 Target Organization: ${{ steps.clone-repo.outputs.target_org }}"
+          echo "✅ Status: ${{ steps.clone-repo.outputs.clone_status }}"
+          echo "============================================"

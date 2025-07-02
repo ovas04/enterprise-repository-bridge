@@ -63,3 +63,22 @@ if ! git push --mirror "https://${TARGET_PAT}@${TARGET_GHEC_URL}/${TARGET_ORG}/$
     exit 1
 fi
 echo "✅ Repository content pushed successfully"
+
+# Generate outputs for GitHub Actions
+echo "repository_url=https://${TARGET_GHEC_URL}/${TARGET_ORG}/${REPO_NAME}" >> $GITHUB_OUTPUT
+echo "repository_name=${TARGET_ORG}/${REPO_NAME}" >> $GITHUB_OUTPUT
+echo "clone_status=success" >> $GITHUB_OUTPUT
+echo "target_org=${TARGET_ORG}" >> $GITHUB_OUTPUT
+
+# Create GitHub Actions annotations
+echo "::notice title=Repository Cloned Successfully::📁 Repository: ${TARGET_ORG}/${REPO_NAME}"
+echo "::notice title=Repository URL::🔗 https://${TARGET_GHEC_URL}/${TARGET_ORG}/${REPO_NAME}"
+echo "::notice title=Cloning Status::✅ Clone operation completed successfully"
+
+echo ""
+echo "============================================"
+echo "✨ REPOSITORY CLONING COMPLETED SUCCESSFULLY"
+echo "============================================"
+echo "📁 Repository: ${TARGET_ORG}/${REPO_NAME}"
+echo "🔗 URL: https://${TARGET_GHEC_URL}/${TARGET_ORG}/${REPO_NAME}"
+echo "============================================"

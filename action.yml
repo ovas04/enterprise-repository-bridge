@@ -44,17 +44,11 @@ runs:
         SOURCE_PAT: ${{ inputs.source_pat }}
         SOURCE_ORG: ${{ inputs.source_org }}
         SOURCE_GHEC_URL: ${{ inputs.source_ghec_url }}
-        REPO_NAME: ${{ inputs.repository_name }}
-        
-    - name: Create Target Repository
-      run: '${{ github.action_path }}/scripts/create-repository.sh'
-      shell: bash
-      env:
         TARGET_PAT: ${{ inputs.target_pat }}
         TARGET_ORG: ${{ inputs.target_org }}
         TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
         REPO_NAME: ${{ inputs.repository_name }}
-
+        
     - name: Get Runner Token
       run: '${{ github.action_path }}/scripts/get-runner-token.sh'
       shell: bash

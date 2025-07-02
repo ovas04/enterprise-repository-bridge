@@ -6,7 +6,7 @@ echo "🔍 Activating GitHub Advanced Security (GHAS) for the repository..."
 HTTP_STATUS=$(curl -s -o repo_response.json -w "%{http_code}" -L \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer ${TARGET_PAT}" \
-  "https://api.${TARGET_GHEC_URL}/repos/${TARGET_ORG}/${REPOSITORY_NAME}")
+  "https://api.${TARGET_GHEC_URL}/repos/${TARGET_ORG}/${REPO_NAME}")
 
 if [[ $HTTP_STATUS -lt 200 || $HTTP_STATUS -ge 300 ]]; then
   echo "❌ Error: API returned status code $HTTP_STATUS when getting repository info"

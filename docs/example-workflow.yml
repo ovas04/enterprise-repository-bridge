@@ -29,14 +29,13 @@ jobs:
     steps:
       - name: Clone Repository
         uses: ovas04/enterprise-repo-bridge@v1
-        env:
-          SOURCE_PAT: ${{ secrets.SOURCE_PAT }}
-          TARGET_PAT: ${{ secrets.TARGET_PAT }}
         with:
           repository_name: ${{ github.event.inputs.repository_name }}
           source_org: 'acme-corp'  # Change this to your source organization
           target_org: ${{ github.event.inputs.target_org || 'new-company' }}
           default_ruleset: ${{ github.event.inputs.default_ruleset }}
+          source_pat: ${{ secrets.SOURCE_PAT }}
+          target_pat: ${{ secrets.TARGET_PAT }}
 
       - name: Process completed successfully
         if: success()

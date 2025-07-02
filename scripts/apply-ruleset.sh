@@ -6,7 +6,7 @@ HTTP_STATUS=$(curl -s -o ruleset_response.json -w "%{http_code}" -L -X POST \
 -H "Accept: application/vnd.github+json" \
 -H "Authorization: Bearer ${TARGET_PAT}" \
 -H "X-GitHub-Api-Version: 2022-11-28" \
-"https://api.${TARGET_GHEC_URL}/repos/${TARGET_ORG}/${REPOSITORY_NAME}/rulesets" \
+"https://api.${TARGET_GHEC_URL}/repos/${TARGET_ORG}/${REPO_NAME}/rulesets" \
 -d '{
       "name": "rs-main-default",
       "target": "branch",

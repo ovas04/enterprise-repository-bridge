@@ -4,10 +4,29 @@
 
 set -e
 
-TARGET_ORG="$1"
-REPO_NAME="$2"
-TARGET_PAT="$3"
-TARGET_GHEC_URL="$4"
+# Use environment variables instead of positional arguments
+# These are set in action.yml
+
+# Validate required environment variables
+if [[ -z "$TARGET_ORG" ]]; then
+    echo "❌ Error: TARGET_ORG is required"
+    exit 1
+fi
+
+if [[ -z "$REPO_NAME" ]]; then
+    echo "❌ Error: REPO_NAME is required"
+    exit 1
+fi
+
+if [[ -z "$TARGET_PAT" ]]; then
+    echo "❌ Error: TARGET_PAT is required"
+    exit 1
+fi
+
+if [[ -z "$TARGET_GHEC_URL" ]]; then
+    echo "❌ Error: TARGET_GHEC_URL is required"
+    exit 1
+fi
 
 echo "🔧 Creating repository in $TARGET_ORG organization..."
 

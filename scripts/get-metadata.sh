@@ -4,7 +4,7 @@ echo "📊 Retrieving repository metadata..."
 HTTP_STATUS=$(curl -s -o metadata.json -w "%{http_code}" -L \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer ${TARGET_PAT}" \
-  "https://api.${TARGET_GHEC_URL}/repos/${TARGET_ORG}/${REPOSITORY_NAME}")
+  "https://api.${TARGET_GHEC_URL}/repos/${TARGET_ORG}/${REPO_NAME}")
 
 if [[ $HTTP_STATUS -lt 200 || $HTTP_STATUS -ge 300 ]]; then
   echo "⚠️ Warning: Could not retrieve repository metadata, status code: $HTTP_STATUS"

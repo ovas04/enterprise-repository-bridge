@@ -1,0 +1,174 @@
+name: Enterprise Repository Bridge
+description: Bridge repos between orgs with support for GitHub.com & GHES. Auto-sets branch protection & GHAS config.
+inputs:
+  repository_name:
+    description: 'Name of the repository to clone'
+    required: true
+  source_org:
+    description: 'Source organization to clone the repository from'
+    required: false
+  target_org:
+    description: 'Target organization to clone the repository'
+    required: false
+  source_ghec_url:
+    description: 'Source GitHub URL (default: github.com for GitHub Cloud)'
+    required: false
+    default: 'github.com'
+  target_ghec_url:
+    description: 'Target GitHub URL (default: github.com for GitHub Cloud)'
+    required: false
+    default: 'github.com'
+  default_ruleset:
+    description: 'Enable default branch protection rules?'
+    required: false
+    default: 'true'
+  ghas_config:
+    description: 'Configuration for GitHub Advanced Security'
+    required: false
+  source_pat:
+    description: 'Personal Access Token for source org'
+    required: true
+  target_pat:
+    description: 'Personal Access Token for target org'
+    required: true
+  clone_only:
+    description: 'Only perform cloning step (skip other configuration steps)'
+    required: false
+    default: 'false'
+  skip_runner_token:
+    description: 'Skip getting runner token'
+    required: false
+    default: 'false'
+  skip_metadata:
+    description: 'Skip getting repository metadata'
+    required: false
+    default: 'false'
+branding:
+  icon: 'download-cloud'
+  color: 'yellow'
+runs:
+  using: 'composite'
+  steps:
+    - name: 🔍 Validate Configuration
+      run: |
+        # Check if source_org is provided either as input or environment variable
+        if [[ -z "${{ inputs.source_org }}" && -z "$SOURCE_ORG" ]]; then
+          echo "❌ Error: source_org must be provided either as input or environment variable"
+          exit 1
+        fi
+        
+        # Set SOURCE_ORG for subsequent steps
+        if [[ -n "${{ inputs.source_org }}" ]]; then
+          echo "SOURCE_ORG=${{ inputs.source_org }}" >> $GITHUB_ENV
+        elif [[ -n "$SOURCE_ORG" ]]; then
+          echo "SOURCE_ORG=$SOURCE_ORG" >> $GITHUB_ENV
+        fi
+        
+        echo "✅ SOURCE_ORG configured: $SOURCE_ORG"
+      shell: bash
+      
+    - name: 📥 Clone Source Repository
+      id: clone
+      run: '${{ github.action_path }}/scripts/clone-repository.sh'
+      shell: bash
+      env:
+        SOURCE_PAT: ${{ inputs.source_pat }}
+        SOURCE_ORG: ${{ env.SOURCE_ORG }}
+        SOURCE_GHEC_URL: ${{ inputs.source_ghec_url }}
+        TARGET_PAT: ${{ inputs.target_pat }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: 🔑 Get Runner Token
+      if: ${{ inputs.skip_runner_token != 'true' }}
+      run: '${{ github.action_path }}/scripts/get-runner-token.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ inputs.target_pat }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: 📊 Get Repository Metadata
+      if: ${{ inputs.skip_metadata != 'true' }}
+      run: '${{ github.action_path }}/scripts/get-metadata.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ inputs.target_pat }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: 🔒 Apply Branch Protection Rules
+      if: ${{ inputs.default_ruleset == 'true' }}
+      run: '${{ github.action_path }}/scripts/apply-ruleset.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ inputs.target_pat }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: 🛡️ Activate GitHub Advanced Security
+      if: ${{ inputs.ghas_config != '' }}
+      run: '${{ github.action_path }}/scripts/activate-ghas.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ inputs.target_pat }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+        GHAS_CONFIG: ${{ inputs.ghas_config }}
+
+    - name: 🧹 Cleanup on Failure
+      if: ${{ failure() }}
+      run: '${{ github.action_path }}/scripts/cleanup.sh'
+      shell: bash
+      env:
+        TARGET_PAT: ${{ inputs.target_pat }}
+        TARGET_ORG: ${{ inputs.target_org }}
+        TARGET_GHEC_URL: ${{ inputs.target_ghec_url }}
+        REPO_NAME: ${{ inputs.repository_name }}
+
+    - name: 📋 Summary & Repository Information
+      if: success()
+      run: |
+        # Create GitHub Actions annotations
+        echo "::notice title=🎉 Cloning Completed::Repository successfully cloned to ${{ steps.clone.outputs.target_org }}"
+        echo "::notice title=📁 Repository Access::${{ steps.clone.outputs.repository_url }}"
+        
+        echo "## 🎉 Repository Cloning Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Status:** Cloning completed successfully" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📁 Repository Details" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository:** \`${{ steps.clone.outputs.repository_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Target Organization:** \`${{ steps.clone.outputs.target_org }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **URL:** [${{ steps.clone.outputs.repository_url }}](${{ steps.clone.outputs.repository_url }})" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔧 Configuration Applied" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch Protection:** ${{ inputs.default_ruleset == 'true' && '✅ Enabled' || '❌ Disabled' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **GitHub Advanced Security:** ${{ inputs.ghas_config != '' && '✅ Configured' || '❌ Not configured' }}" >> $GITHUB_STEP_SUMMARY
+        echo ""
+        echo "============================================"
+        echo "✨ CLONING COMPLETED SUCCESSFULLY"
+        echo "============================================"
+        echo "📁 Repository: ${{ steps.clone.outputs.repository_name }}"
+        echo "🔗 URL: ${{ steps.clone.outputs.repository_url }}"
+        echo "🎯 Target Org: ${{ steps.clone.outputs.target_org }}"
+        echo "============================================"
+      shell: bash
+outputs:
+  repository_url:
+    description: 'URL of the cloned repository in the target organization'
+    value: ${{ steps.clone.outputs.repository_url }}
+  repository_name:
+    description: 'Full name of the repository (org/repo)'
+    value: ${{ steps.clone.outputs.repository_name }}
+  clone_status:
+    description: 'Status of the cloning operation'
+    value: ${{ steps.clone.outputs.clone_status }}
+  target_org:
+    description: 'Target organization where repository was cloned'
+    value: ${{ steps.clone.outputs.target_org }}

@@ -1,0 +1,62 @@
+# Example Workflow for Enterprise Repository Bridge
+# 
+# Setup: Add SOURCE_PAT and TARGET_PAT secrets to your repository
+# See docs/PAT-SETUP.md for detailed instructions
+#
+# 📝 Important: After cloning, set up a sync workflow to keep repositories updated
+# The default ruleset requires a 'sync-branch' status check - see docs/usage.md
+
+name: Clone Repository
+run-name: Clone ${{ github.event.inputs.repository_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository_name:
+        description: 'Repository to clone'
+        required: true
+        type: string
+      target_org:
+        description: 'Target organization (optional)'
+        required: false
+        type: string
+      default_ruleset:
+        description: 'Apply branch protection rules'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  clone-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        id: clone-repo
+        uses: ovas04/enterprise-repo-bridge@v1
+        with:
+          repository_name: ${{ github.event.inputs.repository_name }}
+          source_org: 'acme-corp'  # Change this to your source organization
+          target_org: ${{ github.event.inputs.target_org || 'new-company' }}
+          default_ruleset: ${{ github.event.inputs.default_ruleset }}
+          source_pat: ${{ secrets.SOURCE_PAT }}
+          target_pat: ${{ secrets.TARGET_PAT }}
+        # Alternative: You can also pass source_org as environment variable
+        # env:
+        #   SOURCE_ORG: 'your-source-org'
+
+      - name: Display Repository Information
+        if: success()
+        run: |
+          echo "============================================"
+          echo "✨ REPOSITORY CLONING COMPLETED SUCCESSFULLY"
+          echo "============================================"
+          echo "📁 Repository: ${{ steps.clone-repo.outputs.repository_name }}"
+          echo "🔗 URL: ${{ steps.clone-repo.outputs.repository_url }}"
+          echo "🎯 Target Organization: ${{ steps.clone-repo.outputs.target_org }}"
+          echo "✅ Status: ${{ steps.clone-repo.outputs.clone_status }}"
+          echo "============================================"
+
+# Next Steps:
+# 1. Set up a sync workflow in the cloned repository to keep it updated
+# 2. The 'sync-branch' status check in the default ruleset ensures updates are validated
+# Example sync workflow available in docs/usage.md

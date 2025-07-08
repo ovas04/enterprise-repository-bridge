@@ -1,0 +1,39 @@
+name: Release Action
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Tag Version
+        id: tag_version
+        run: |
+          echo "tag_version=$(head -1 VERSION)" >> $GITHUB_OUTPUT
+          echo "major_version=$(head -1 VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
+
+      - name: Create Tag
+        id: create_tag
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CUSTOM_TAG: ${{ steps.tag_version.outputs.tag_version }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag_version.outputs.tag_version }}
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+
+      - name: Create Major Version Tag 
+        run: |
+          git tag -f ${{ steps.tag_version.outputs.major_version }}
+          git push origin ${{ steps.tag_version.outputs.major_version }} --force
